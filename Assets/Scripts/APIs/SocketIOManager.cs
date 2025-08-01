@@ -17,16 +17,16 @@ public class SocketIOManager : MonoBehaviour
     private UIManager uiManager;
 
     internal GameData initialData = null;
-    internal UIData initUIData = null;
-    internal GameData resultData = null;
-    internal PlayerData playerdata = null;
+    internal UiData initUIData = null;
+    internal Root resultData = null;
+    internal Player playerdata = null;
     internal List<List<int>> LineData = null;
     [SerializeField]
     internal List<string> bonusdata = null;
     //WebSocket currentSocket = null;
     internal bool isResultdone = false;
     // protected string nameSpace="game"; //BackendChanges
-    protected string nameSpace = ""; //BackendChanges
+    protected string nameSpace = "playground"; //BackendChanges
     private Socket gameSocket; //BackendChanges
 
     private SocketManager manager;
@@ -49,6 +49,20 @@ public class SocketIOManager : MonoBehaviour
 
     private const int maxReconnectionAttempts = 6;
     private readonly TimeSpan reconnectionDelay = TimeSpan.FromSeconds(10);
+
+    private bool isConnected = false; //Back2 Start
+    private bool hasEverConnected = false;
+    private const int MaxReconnectAttempts = 5;
+    private const float ReconnectDelaySeconds = 2f;
+
+    private float lastPongTime = 0f;
+    private float pingInterval = 2f;
+    private float pongTimeout = 3f;
+    private bool waitingForPong = false;
+    private int missedPongs = 0;
+    private const int MaxMissedPongs = 5;
+    private Coroutine PingRoutine; //Back2 end
+    [SerializeField] private GameObject RaycastBlocker;
 
     private void Awake()
     {
@@ -81,13 +95,13 @@ public class SocketIOManager : MonoBehaviour
     private void OpenSocket()
     {
         //Create and setup SocketOptions
-        SocketOptions options = new SocketOptions();
-        options.ReconnectionAttempts = maxReconnectionAttempts;
-        options.ReconnectionDelay = reconnectionDelay;
-        options.Reconnection = true;
+        SocketOptions options = new SocketOptions(); //Back2 Start
+        options.AutoConnect = false;
+        options.Reconnection = false;
+        options.Timeout = TimeSpan.FromSeconds(3); //Back2 end
         options.ConnectWith = Best.SocketIO.Transports.TransportTypes.WebSocket; //BackendChanges
 
-        Application.ExternalCall("window.parent.postMessage", "authToken", "*");
+        //  Application.ExternalCall("window.parent.postMessage", "authToken", "*");
 
 #if UNITY_WEBGL && !UNITY_EDITOR
         JSManager.SendCustomMessage("authToken");
@@ -128,7 +142,7 @@ public class SocketIOManager : MonoBehaviour
             return new
             {
                 token = myAuth,
-                gameId = gameID
+                // gameId = gameID
             };
         };
         options.Auth = authFunction;
@@ -159,33 +173,61 @@ public class SocketIOManager : MonoBehaviour
         }
         // Set subscriptions
         gameSocket.On<ConnectResponse>(SocketIOEventTypes.Connect, OnConnected);
-        gameSocket.On<string>(SocketIOEventTypes.Disconnect, OnDisconnected);
-        gameSocket.On<string>(SocketIOEventTypes.Error, OnError);
-        gameSocket.On<string>("message", OnListenEvent);
+        gameSocket.On(SocketIOEventTypes.Disconnect, OnDisconnected);
+        gameSocket.On<Error>(SocketIOEventTypes.Error, OnError);
+        //gameSocket.On<string>("message", OnListenEvent);
+        gameSocket.On<string>("game:init", OnListenEvent);
+        gameSocket.On<string>("result", OnListenEvent);
+
         gameSocket.On<bool>("socketState", OnSocketState);
         gameSocket.On<string>("internalError", OnSocketError);
         gameSocket.On<string>("alert", OnSocketAlert);
+        gameSocket.On<string>("pong", OnPongReceived);
         gameSocket.On<string>("AnotherDevice", OnSocketOtherDevice); //BackendChanges Finish
-        // Start connecting to the server
+        manager.Open();
     }
 
     // Connected event handler implementation
     void OnConnected(ConnectResponse resp)
     {
-        Debug.Log("Connected!");
+        Debug.Log("✅ Connected to server.");
+
+        if (hasEverConnected)
+        {
+            uiManager.CheckAndClosePopups();
+        }
+
+        isConnected = true;
+        hasEverConnected = true;
+        waitingForPong = false;
+        missedPongs = 0;
+        lastPongTime = Time.time;
         SendPing();
     }
 
-    private void OnDisconnected(string response)
+    private void OnDisconnected() //Back2 Start
     {
-        Debug.Log("Disconnected from the server");
-        StopAllCoroutines();
-        uiManager.DisconnectionPopup(false);
+        Debug.LogWarning("⚠️ Disconnected from server.");
+        isConnected = false;
+        ResetPingRoutine();
     }
 
-    private void OnError(string response)
+    private void OnPongReceived(string data) //Back2 Start
     {
-        Debug.LogError("Error: " + response);
+        Debug.Log("✅ Received pong from server.");
+        waitingForPong = false;
+        missedPongs = 0;
+        lastPongTime = Time.time;
+        Debug.Log($"⏱️ Updated last pong time: {lastPongTime}");
+        Debug.Log($"📦 Pong payload: {data}");
+    } //Back2 end
+
+    private void OnError(Error err)
+    {
+        Debug.LogError("Socket Error Message: " + err);
+#if UNITY_WEBGL && !UNITY_EDITOR
+    JSManager.SendCustomMessage("error");
+#endif
     }
 
     private void OnListenEvent(string data)
@@ -211,7 +253,7 @@ public class SocketIOManager : MonoBehaviour
     }
     private void OnSocketAlert(string data)
     {
-        //Debug.Log("Received alert with data: " + data);
+        Debug.Log("Received alert with data: " + data);
     }
 
     private void OnSocketOtherDevice(string data)
@@ -220,9 +262,65 @@ public class SocketIOManager : MonoBehaviour
         uiManager.ADfunction();
     }
 
-    private void SendPing()
+    private void SendPing() //Back2 Start
     {
-        InvokeRepeating("AliveRequest", 0f, 3f);
+        ResetPingRoutine();
+        PingRoutine = StartCoroutine(PingCheck());
+    }
+
+    void ResetPingRoutine()
+    {
+        if (PingRoutine != null)
+        {
+            StopCoroutine(PingRoutine);
+        }
+        PingRoutine = null;
+    }
+
+    private IEnumerator PingCheck()
+    {
+        while (true)
+        {
+            Debug.Log($"🟡 PingCheck | waitingForPong: {waitingForPong}, missedPongs: {missedPongs}, timeSinceLastPong: {Time.time - lastPongTime}");
+
+            if (missedPongs == 0)
+            {
+                uiManager.CheckAndClosePopups();
+            }
+
+            // If waiting for pong, and timeout passed
+            if (waitingForPong)
+            {
+                if (missedPongs == 2)
+                {
+                    uiManager.ReconnectionPopup();
+                }
+                missedPongs++;
+                Debug.LogWarning($"⚠️ Pong missed #{missedPongs}/{MaxMissedPongs}");
+
+                if (missedPongs >= MaxMissedPongs)
+                {
+                    Debug.LogError("❌ Unable to connect to server — 5 consecutive pongs missed.");
+                    isConnected = false;
+                    uiManager.DisconnectionPopup();
+                    yield break;
+                }
+            }
+
+            // Send next ping
+            waitingForPong = true;
+            lastPongTime = Time.time;
+            Debug.Log("📤 Sending ping...");
+            SendDataWithNamespace("ping");
+            yield return new WaitForSeconds(pingInterval);
+        }
+    } //Back2 end
+
+
+    void CloseGame()
+    {
+        Debug.Log("Unity: Closing Game");
+        StartCoroutine(CloseSocket());
     }
 
     private void AliveRequest()
@@ -258,10 +356,26 @@ public class SocketIOManager : MonoBehaviour
 #endif
     }
 
-    internal void CloseSocket()
+    internal IEnumerator CloseSocket() //Back2 Start
     {
-        SendDataWithNamespace("EXIT");
-    }
+        RaycastBlocker.SetActive(true);
+        ResetPingRoutine();
+
+        Debug.Log("Closing Socket");
+
+        manager?.Close();
+        manager = null;
+
+        Debug.Log("Waiting for socket to close");
+
+        yield return new WaitForSeconds(0.5f);
+
+        Debug.Log("Socket Closed");
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+    JSManager.SendCustomMessage("OnExit"); //Telling the react platform user wants to quit and go back to homepage
+#endif
+    } //Back2 end
 
     private void ParseResponse(string jsonObject)
     {
@@ -270,22 +384,22 @@ public class SocketIOManager : MonoBehaviour
 
         string id = myData.id;
 
-        switch(id)
+        switch (id)
         {
-            case "InitData":
+            case "initData":
                 {
-                    initialData = myData.message.GameData;
-                    initUIData = myData.message.UIData;
-                    playerdata = myData.message.PlayerData;
-                    bonusdata = myData.message.BonusData;
-                    LineData = myData.message.GameData.linesApiData;
+                    initialData = myData.gameData;
+                    initUIData = myData.uiData;
+                    playerdata = myData.player;
+                    //   bonusdata = myData.message.BonusData;
+                    //  LineData = myData.message.GameData.linesApiData;
                     if (!SetInit)
                     {
                         Debug.Log(jsonObject);
-                        List<string> LinesString = ConvertListListIntToListString(initialData.linesApiData);
-                        List<string> InitialReels = ConvertListOfListsToStrings(initialData.Reel);
-                        InitialReels = RemoveQuotes(InitialReels);
-                        PopulateSlotSocket(InitialReels, LinesString);
+                        List<string> LinesString = ConvertListListIntToListString(initialData.lines);
+                        // List<string> InitialReels = ConvertListOfListsToStrings(initialData.Reel);
+                        // InitialReels = RemoveQuotes(InitialReels);
+                        PopulateSlotSocket(LinesString);
                         SetInit = true;
                     }
                     else
@@ -296,13 +410,18 @@ public class SocketIOManager : MonoBehaviour
                 }
             case "ResultData":
                 {
-                    Debug.Log(jsonObject);
-                    myData.message.GameData.FinalResultReel = ConvertListOfListsToStrings(myData.message.GameData.resultSymbols);
-                    myData.message.GameData.FinalsymbolsToEmit = TransformAndRemoveRecurring(myData.message.GameData.symbolsToEmit);
-                    resultData = myData.message.GameData;
-                    playerdata = myData.message.PlayerData;
+                    resultData = myData;
+                    playerdata = myData.player;
                     isResultdone = true;
                     break;
+
+                    // Debug.Log(jsonObject);
+                    // myData.message.GameData.FinalResultReel = ConvertListOfListsToStrings(myData.message.GameData.resultSymbols);
+                    // myData.message.GameData.FinalsymbolsToEmit = TransformAndRemoveRecurring(myData.message.GameData.symbolsToEmit);
+                    // resultData = myData.message.GameData;
+                    // playerdata = myData.message.PlayerData;
+                    // isResultdone = true;
+                    // break;
                 }
             case "ExitUser":
                 {
@@ -311,7 +430,7 @@ public class SocketIOManager : MonoBehaviour
                         Debug.Log("Dispose my Socket");
                         this.manager.Close();
                     }
-                  //  Application.ExternalCall("window.parent.postMessage", "onExit", "*");
+                    //  Application.ExternalCall("window.parent.postMessage", "onExit", "*");
 #if UNITY_WEBGL && !UNITY_EDITOR
                         JSManager.SendCustomMessage("onExit");
 #endif
@@ -326,35 +445,35 @@ public class SocketIOManager : MonoBehaviour
         uiManager.InitialiseUIData(initUIData.paylines);
     }
 
-    private void PopulateSlotSocket(List<string> slotPop, List<string> LineIds)
+    private void PopulateSlotSocket(List<string> LineIds)
     {
         slotManager.shuffleInitialMatrix();
         for (int i = 0; i < LineIds.Count; i++)
         {
             slotManager.FetchLines(LineIds[i], i);
         }
+        Debug.Log(" Dict count :" + slotManager.y_string.Count);
 
         slotManager.SetInitialUI();
 
         isLoaded = true;
+        RaycastBlocker.SetActive(false);
         Application.ExternalCall("window.parent.postMessage", "OnEnter", "*");
 #if UNITY_WEBGL && !UNITY_EDITOR
         JSManager.SendCustomMessage("OnEnter");
 #endif
     }
 
-    internal void AccumulateResult(double currBet)
+    internal void AccumulateResult(int currBet)
     {
         isResultdone = false;
         MessageData message = new MessageData();
-        message.data = new BetData();
-        message.data.currentBet = currBet;
-        message.data.spins = 1;
-        message.data.currentLines = 20;
-        message.id = "SPIN";
+        message.type = "SPIN";
+        message.payload = new Data();
+        message.payload.betIndex = currBet;
         // Serialize message data to JSON
         string json = JsonUtility.ToJson(message);
-        SendDataWithNamespace("message", json);
+        SendDataWithNamespace("request", json);
     }
 
     private List<string> RemoveQuotes(List<string> stringList)
@@ -441,8 +560,18 @@ public class AuthData
 [Serializable]
 public class MessageData
 {
-    public BetData data;
-    public string id;
+    // public BetData data;
+    // public string id;
+
+    public string type;
+    public Data payload;
+}
+
+[Serializable]
+public class Data
+{
+    public int betIndex;
+
 }
 
 [Serializable]
@@ -470,7 +599,7 @@ public class GameData
 {
     public List<List<string>> Reel { get; set; }
     public List<List<int>> linesApiData { get; set; }
-    public List<double> Bets { get; set; }
+
     public bool canSwitchLines { get; set; }
     public List<int> LinesCount { get; set; }
     public List<int> autoSpin { get; set; }
@@ -484,6 +613,9 @@ public class GameData
     public double jackpot { get; set; }
     public bool isBonus { get; set; }
     public double BonusStopIndex { get; set; }
+
+    public List<List<int>> lines { get; set; }
+    public List<double> bets { get; set; }
 }
 
 [Serializable]
@@ -499,26 +631,56 @@ public class FreeSpins
 public class Message
 {
     public GameData GameData { get; set; }
-    public UIData UIData { get; set; }
-    public PlayerData PlayerData { get; set; }
+    public UiData UIData { get; set; }
+    public Player PlayerData { get; set; }
     public List<string> BonusData { get; set; }
 }
 
 [Serializable]
 public class Root
 {
-    public string id { get; set; }
+    // public string id { get; set; }
     public Message message { get; set; }
+
+    public string id { get; set; }
+    public GameData gameData { get; set; }
+    public UiData uiData { get; set; }
+    public Player player { get; set; }
+    public List<List<string>> matrix { get; set; }
+    public Payload payload { get; set; }
+    public Features features { get; set; }
 }
 
 [Serializable]
-public class UIData
+public class Payload
+{
+    public double winAmount { get; set; }
+    public List<Win> wins { get; set; }
+}
+[Serializable]
+public class Features
+{
+    public FreeSpin freeSpin { get; set; }
+}
+[Serializable]
+public class Win
+{
+    public int lineIndex { get; set; }
+    public List<int> positions { get; set; }
+    public double payout { get; set; }
+}
+[Serializable]
+public class FreeSpin
+{
+    public bool isFreeSpin { get; set; }
+    public int count { get; set; }
+    public bool isTrumpSpin { get; set; }
+}
+
+[Serializable]
+public class UiData
 {
     public Paylines paylines { get; set; }
-    public List<string> spclSymbolTxt { get; set; }
-    public AbtLogo AbtLogo { get; set; }
-    public string ToULink { get; set; }
-    public string PopLink { get; set; }
 }
 
 [Serializable]
@@ -530,40 +692,16 @@ public class Paylines
 [Serializable]
 public class Symbol
 {
-    public int ID { get; set; }
-    public string Name { get; set; }
-    [JsonProperty("multiplier")]
-    public object MultiplierObject { get; set; }
+    public int id { get; set; }
+    public string name { get; set; }
+    public List<int> multiplier { get; set; }
+    public string description { get; set; }
 
-    // This property will hold the properly deserialized list of lists of integers
-    [JsonIgnore]
-    public List<List<int>> Multiplier { get; private set; }
-
-    // Custom deserialization method to handle the conversion
-    [OnDeserialized]
-    internal void OnDeserializedMethod(StreamingContext context)
-    {
-        // Handle the case where multiplier is an object (empty in JSON)
-        if (MultiplierObject is JObject)
-        {
-            Multiplier = new List<List<int>>();
-        }
-        else
-        {
-            // Deserialize normally assuming it's an array of arrays
-            Multiplier = JsonConvert.DeserializeObject<List<List<int>>>(MultiplierObject.ToString());
-        }
-    }
-    public object defaultAmount { get; set; }
-    public object symbolsCount { get; set; }
-    public object increaseValue { get; set; }
-    public object description { get; set; }
-    public int freeSpin { get; set; }
 }
 [Serializable]
-public class PlayerData
+public class Player
 {
-    public double Balance { get; set; }
+    public double balance { get; set; }
     public double haveWon { get; set; }
     public double currentWining { get; set; }
 }

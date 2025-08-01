@@ -94,6 +94,8 @@ public class UIManager : MonoBehaviour
     private Button CloseDisconnect_Button;
     [SerializeField]
     private GameObject DisconnectPopup_Object;
+    [SerializeField]
+    private GameObject ReconnectPopup_Object;
 
     [Header("AnotherDevice Popup")]
     [SerializeField]
@@ -235,7 +237,7 @@ public class UIManager : MonoBehaviour
         if (CloseAD_Button) CloseAD_Button.onClick.AddListener(CallOnExitFunction);
 
         if (FreeSpin_Button) FreeSpin_Button.onClick.RemoveAllListeners();
-        if (FreeSpin_Button) FreeSpin_Button.onClick.AddListener(delegate{ StartFreeSpins(FreeSpins); });
+        if (FreeSpin_Button) FreeSpin_Button.onClick.AddListener(delegate { StartFreeSpins(FreeSpins); });
 
         if (QuitSplash_button) QuitSplash_button.onClick.RemoveAllListeners();
         if (QuitSplash_button) QuitSplash_button.onClick.AddListener(delegate { OpenPopup(QuitPopup_Object); });
@@ -291,12 +293,28 @@ public class UIManager : MonoBehaviour
         OpenPopup(LBPopup_Object);
     }
 
-    internal void DisconnectionPopup(bool isReconnection)
+    internal void CheckAndClosePopups()
+    {
+        if (ReconnectPopup_Object.activeInHierarchy)
+        {
+            ClosePopup(ReconnectPopup_Object);
+        }
+        if (DisconnectPopup_Object.activeInHierarchy)
+        {
+            ClosePopup(DisconnectPopup_Object);
+        }
+    }
+
+    internal void DisconnectionPopup()
     {
         if (!isExit)
         {
             OpenPopup(DisconnectPopup_Object);
         }
+    }
+    internal void ReconnectionPopup()
+    {
+        OpenPopup(ReconnectPopup_Object);
     }
 
     private void StartFreeSpins(int spins)
@@ -324,15 +342,16 @@ public class UIManager : MonoBehaviour
             if (Free_Text) Free_Text.text = ExtraSpins.ToString() + " Free spins awarded.";
         }
         if (MainPopup_Object) MainPopup_Object.SetActive(true);
-        DOVirtual.DelayedCall(2f, () => {
-           
+        DOVirtual.DelayedCall(2f, () =>
+        {
+
             StartFreeSpins(spins);
         });
     }
 
     internal void ADfunction()
     {
-        OpenPopup(ADPopup_Object); 
+        OpenPopup(ADPopup_Object);
     }
 
     internal void InitialiseUIData(Paylines symbolsText)
@@ -385,32 +404,32 @@ public class UIManager : MonoBehaviour
         for (int i = 0; i < SymbolsText.Length; i++)
         {
             string text = null;
-            if (paylines.symbols[i].Multiplier[0][0] != 0)
+            if (paylines.symbols[i].multiplier[0] != 0)
             {
-                text += "5x - " + paylines.symbols[i].Multiplier[0][0] + "x";
+                text += "5x - " + paylines.symbols[i].multiplier[0] + "x";
             }
-            if (paylines.symbols[i].Multiplier[1][0] != 0)
+            if (paylines.symbols[i].multiplier[1] != 0)
             {
-                text += "\n4x - " + paylines.symbols[i].Multiplier[1][0] + "x";
+                text += "\n4x - " + paylines.symbols[i].multiplier[1] + "x";
             }
-            if (paylines.symbols[i].Multiplier[2][0] != 0)
+            if (paylines.symbols[i].multiplier[2] != 0)
             {
-                text += "\n3x - " + paylines.symbols[i].Multiplier[2][0] + "x";
+                text += "\n3x - " + paylines.symbols[i].multiplier[2] + "x";
             }
             if (SymbolsText[i]) SymbolsText[i].text = text;
         }
 
         for (int i = 0; i < paylines.symbols.Count; i++)
         {
-            if (paylines.symbols[i].Name.ToUpper() == "FREESPIN")
+            if (paylines.symbols[i].name.ToUpper() == "FREESPIN")
             {
                 if (FreeSpin_Text) FreeSpin_Text.text = paylines.symbols[i].description.ToString();
             }
-            if (paylines.symbols[i].Name.ToUpper() == "TRUMPFREESPIN")
+            if (paylines.symbols[i].name.ToUpper() == "TRUMPFREESPIN")
             {
                 if (Trump_Text) Trump_Text.text = paylines.symbols[i].description.ToString();
             }
-            if (paylines.symbols[i].Name.ToUpper() == "WILD")
+            if (paylines.symbols[i].name.ToUpper() == "WILD")
             {
                 if (Wild_Text) Wild_Text.text = paylines.symbols[i].description.ToString();
             }
@@ -435,7 +454,7 @@ public class UIManager : MonoBehaviour
     {
         if (audioController) audioController.PlayButtonAudio();
         if (Popup) Popup.SetActive(false);
-        if (!DisconnectPopup_Object.activeSelf) 
+        if (!DisconnectPopup_Object.activeSelf)
         {
             if (MainPopup_Object) MainPopup_Object.SetActive(false);
         }
@@ -468,15 +487,15 @@ public class UIManager : MonoBehaviour
         {
             if (SoundOn_Object) SoundOn_Object.SetActive(true);
             if (SoundOff_Object) SoundOff_Object.SetActive(false);
-            if (audioController) audioController.ToggleMute(false,"button");
-            if (audioController) audioController.ToggleMute(false,"wl");
+            if (audioController) audioController.ToggleMute(false, "button");
+            if (audioController) audioController.ToggleMute(false, "wl");
         }
         else
         {
             if (SoundOn_Object) SoundOn_Object.SetActive(false);
             if (SoundOff_Object) SoundOff_Object.SetActive(true);
-            if(audioController) audioController.ToggleMute(true,"button");
-            if (audioController) audioController.ToggleMute(true,"wl");
+            if (audioController) audioController.ToggleMute(true, "button");
+            if (audioController) audioController.ToggleMute(true, "wl");
         }
     }
 }
