@@ -6588,7 +6588,7 @@ MonoBehaviour:
   slotManager: {fileID: 2046803210}
   uiManager: {fileID: 377874625}
   bonusdata: []
-  testToken: 0abd889f52304b1686adbf584436c896
+  testToken: be076bb7451e419887a780c2ac04aef1
   JSManager: {fileID: 1518894901}
   RaycastBlocker: {fileID: 196256027}
 --- !u!1 &502359460
@@ -15108,7 +15108,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 10243ee9590cb4cbda067c83593aea68, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 67b2fb42c1dc74d11868887eb78fed61, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
