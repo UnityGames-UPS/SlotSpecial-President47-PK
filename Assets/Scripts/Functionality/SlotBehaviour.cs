@@ -376,7 +376,7 @@ public class SlotBehaviour : MonoBehaviour
         // }
         List<int> y_points = null;
         y_points = y_string[LineID_Text]?.Split(',')?.Select(Int32.Parse)?.ToList();
-        PayCalculator.GeneratePayoutLinesBackend(y_points, y_points.Count,true);
+        PayCalculator.GeneratePayoutLinesBackend(y_points, y_points.Count, true);
     }
 
     //Destroy Static Lines from button hovers
@@ -408,7 +408,7 @@ public class SlotBehaviour : MonoBehaviour
                 }
             }
             if (TotalBet_text) TotalBet_text.text = (SocketManager.initialData.bets[BetCounter] * SocketManager.initialData.lines.Count).ToString();
-            currentTotalBet = SocketManager.initialData.bets[BetCounter]* SocketManager.initialData.lines.Count; // * Lines;
+            currentTotalBet = SocketManager.initialData.bets[BetCounter] * SocketManager.initialData.lines.Count; // * Lines;
 
         }
     }
@@ -675,6 +675,7 @@ public class SlotBehaviour : MonoBehaviour
         yield return new WaitForSeconds(0.3f);
         if (SocketManager.resultData.payload.winAmount > 0)
         {
+            if (TotalWin_text) TotalWin_text.text = "<size=35>win</size>\n" + SocketManager.resultData.payload.winAmount.ToString("f3");
             List<int> winLine = new();
             foreach (var item in SocketManager.resultData.payload.wins)
             {
