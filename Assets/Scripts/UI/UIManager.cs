@@ -399,22 +399,22 @@ public class UIManager : MonoBehaviour
         slotManager.CheckPopups = false;
     }
 
-    private void PopulateSymbolsPayout(Paylines paylines)
+    internal void PopulateSymbolsPayout(Paylines paylines)
     {
         for (int i = 0; i < SymbolsText.Length; i++)
         {
             string text = null;
             if (paylines.symbols[i].multiplier[0] != 0)
             {
-                text += "5x - " + paylines.symbols[i].multiplier[0] + "x";
+                text += "5x - " + (paylines.symbols[i].multiplier[0] * socketManager.initialData.bets[slotManager.BetCounter]) + "x";
             }
             if (paylines.symbols[i].multiplier[1] != 0)
             {
-                text += "\n4x - " + paylines.symbols[i].multiplier[1] + "x";
+                text += "\n4x - " + (paylines.symbols[i].multiplier[1]* socketManager.initialData.bets[slotManager.BetCounter]) + "x";
             }
             if (paylines.symbols[i].multiplier[2] != 0)
             {
-                text += "\n3x - " + paylines.symbols[i].multiplier[2] + "x";
+                text += "\n3x - " + (paylines.symbols[i].multiplier[2]* socketManager.initialData.bets[slotManager.BetCounter]) + "x";
             }
             if (SymbolsText[i]) SymbolsText[i].text = text;
         }

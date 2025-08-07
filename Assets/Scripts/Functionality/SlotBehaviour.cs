@@ -142,7 +142,7 @@ public class SlotBehaviour : MonoBehaviour
     private bool StopSpinToggle;
     [SerializeField] private bool WasAutoSpinOn;
 
-    private int BetCounter = 0;
+    internal int BetCounter = 0;
     private double currentBalance = 0;
     private double currentTotalBet = 0;
     protected int Lines = 20;
@@ -409,6 +409,7 @@ public class SlotBehaviour : MonoBehaviour
             }
             if (TotalBet_text) TotalBet_text.text = (SocketManager.initialData.bets[BetCounter] * SocketManager.initialData.lines.Count).ToString();
             currentTotalBet = SocketManager.initialData.bets[BetCounter] * SocketManager.initialData.lines.Count; // * Lines;
+            uiManager.PopulateSymbolsPayout(SocketManager.initUIData.paylines);
 
         }
     }
