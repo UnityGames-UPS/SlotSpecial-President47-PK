@@ -406,15 +406,15 @@ public class UIManager : MonoBehaviour
             string text = null;
             if (paylines.symbols[i].multiplier[0] != 0)
             {
-                text += "5x - " + (paylines.symbols[i].multiplier[0] * socketManager.initialData.bets[slotManager.BetCounter]) + "x";
+                text += "5x - " + (paylines.symbols[i].multiplier[0] * socketManager.initialData.bets[slotManager.BetCounter]) ;
             }
             if (paylines.symbols[i].multiplier[1] != 0)
             {
-                text += "\n4x - " + (paylines.symbols[i].multiplier[1]* socketManager.initialData.bets[slotManager.BetCounter]) + "x";
+                text += "\n4x - " + (paylines.symbols[i].multiplier[1]* socketManager.initialData.bets[slotManager.BetCounter]) ;
             }
             if (paylines.symbols[i].multiplier[2] != 0)
             {
-                text += "\n3x - " + (paylines.symbols[i].multiplier[2]* socketManager.initialData.bets[slotManager.BetCounter]) + "x";
+                text += "\n3x - " + (paylines.symbols[i].multiplier[2]* socketManager.initialData.bets[slotManager.BetCounter]) ;
             }
             if (SymbolsText[i]) SymbolsText[i].text = text;
         }
