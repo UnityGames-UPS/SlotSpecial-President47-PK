@@ -677,6 +677,8 @@ public class SlotBehaviour : MonoBehaviour
         if (SocketManager.resultData.payload.winAmount > 0)
         {
             if (TotalWin_text) TotalWin_text.text = "<size=35>win</size>\n" + SocketManager.resultData.payload.winAmount.ToString("f3");
+                    if (audioController) audioController.PlayWLAudio("winline");
+
             List<int> winLine = new();
             foreach (var item in SocketManager.resultData.payload.wins)
             {

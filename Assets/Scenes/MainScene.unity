@@ -1095,9 +1095,9 @@ MonoBehaviour:
   m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 868.6
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 2340, y: 1080}
+  m_ReferenceResolution: {x: 2360, y: 1080}
   m_ScreenMatchMode: 0
-  m_MatchWidthOrHeight: 0.5
+  m_MatchWidthOrHeight: 0.45
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
@@ -8788,7 +8788,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 886, y: 415}
+  m_AnchoredPosition: {x: 929, y: 415}
   m_SizeDelta: {x: 69.47, y: 66.52}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &702497084
@@ -8909,7 +8909,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 1003.4, y: 231}
+  m_AnchoredPosition: {x: 883, y: 231}
   m_SizeDelta: {x: 247.38, y: 191.57}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &703271422
@@ -11302,7 +11302,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 489.93}
+  m_AnchoredPosition: {x: 0, y: 476}
   m_SizeDelta: {x: 652.2, y: 155.8}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &894129957
@@ -11476,7 +11476,7 @@ MonoBehaviour:
   CanvasScaler: {fileID: 51930702}
   MatchWidth: 0
   MatchHeight: 1
-  PortraitMatchWandH: 0.5
+  PortraitMatchWandH: 0.45
   transitionDuration: 0.2
   waitForRotation: 0.2
 --- !u!1 &902981707
@@ -13964,7 +13964,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 901, y: -182}
+  m_AnchoredPosition: {x: 944, y: -182}
   m_SizeDelta: {x: 163.3, y: 154.2}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1066106365
@@ -14033,7 +14033,7 @@ MonoBehaviour:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: 8c7c63b528f6e4003a869c21b2c34cc8, type: 3}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -15010,7 +15010,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -422.1}
+  m_AnchoredPosition: {x: -64, y: -422}
   m_SizeDelta: {x: 1699.84, y: 169.61}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1108054397
@@ -19204,7 +19204,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: -64, y: 0}
   m_SizeDelta: {x: 2340, y: 1080}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1480051155
@@ -30023,6 +30023,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: a07b4729f6a00467c8df5bb68433f684, type: 3}
   - {fileID: 8300000, guid: 60f3160bc4a8348cbb8ba17686fcdd78, type: 3}
   - {fileID: 8300000, guid: fdeaaa47596324ad8969f66511d02bf7, type: 3}
+  - {fileID: 8300000, guid: a0e79465595c14233b869b118ffe5c17, type: 3}
 --- !u!82 &1099861978960025974
 AudioSource:
   m_ObjectHideFlags: 0
