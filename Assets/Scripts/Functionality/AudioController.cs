@@ -65,7 +65,7 @@ public class AudioController : MonoBehaviour
                 index = 4;
                 break;
                 case "winline":
-                index = 7;
+                index = 5;
                 break;
         }
         StopWLAaudio();
