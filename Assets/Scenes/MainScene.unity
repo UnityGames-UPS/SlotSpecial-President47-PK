@@ -38,7 +38,6 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -6588,7 +6587,7 @@ MonoBehaviour:
   slotManager: {fileID: 2046803210}
   uiManager: {fileID: 377874625}
   bonusdata: []
-  testToken: 1d28c37b106b40a5af7b5f2786c933b9
+  testToken: 3e6bf682837e450fb2828512d30140d0
   JSManager: {fileID: 1518894901}
   RaycastBlocker: {fileID: 196256027}
 --- !u!1 &502359460

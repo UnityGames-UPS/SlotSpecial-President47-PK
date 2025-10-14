@@ -134,6 +134,7 @@ public class SlotBehaviour : MonoBehaviour
 
     private bool IsAutoSpin = false;
     private bool IsFreeSpin = false;
+    private bool FreeSpinComplete = true;
     private bool IsSpinning = false;
     private bool CheckSpinAudio = false;
     internal bool CheckPopups = false;
@@ -333,7 +334,7 @@ public class SlotBehaviour : MonoBehaviour
         }
         uiManager.localfreespin = 0;
         if (FSBoard_Object) FSBoard_Object.SetActive(false);
-
+        FreeSpinComplete = true;
         IsFreeSpin = false;
         if (WasAutoSpinOn)
         {
@@ -677,7 +678,7 @@ public class SlotBehaviour : MonoBehaviour
         if (SocketManager.resultData.payload.winAmount > 0)
         {
             if (TotalWin_text) TotalWin_text.text = "<size=35>win</size>\n" + SocketManager.resultData.payload.winAmount.ToString("f3");
-                    if (audioController) audioController.PlayWLAudio("winline");
+            if (audioController) audioController.PlayWLAudio("winline");
 
             List<int> winLine = new();
             foreach (var item in SocketManager.resultData.payload.wins)
@@ -718,7 +719,7 @@ public class SlotBehaviour : MonoBehaviour
                 }
             }
             yield return new WaitForSeconds(1.5f);
-
+            FreeSpinComplete = false;
             uiManager.FreeSpinProcess((int)SocketManager.resultData.features.freeSpin.count);
             if (IsAutoSpin)
             {
@@ -737,6 +738,7 @@ public class SlotBehaviour : MonoBehaviour
                 FreeSpinRoutine = null;
             }
             yield return new WaitForSeconds(1f);
+            FreeSpinComplete = false;
             uiManager.FreeSpinProcess((int)SocketManager.resultData.features.freeSpin.count);
             yield return new WaitForSeconds(1.5f);
         }
@@ -748,8 +750,9 @@ public class SlotBehaviour : MonoBehaviour
         {
             stopautospin();
         }
-        if (!IsAutoSpin && !IsFreeSpin)
+        if (!IsAutoSpin && FreeSpinComplete)
         {
+            Debug.Log("Dev test " + FreeSpinComplete);
             ToggleButtonGrp(true);
             IsSpinning = false;
         }
@@ -1173,7 +1176,7 @@ public class SlotBehaviour : MonoBehaviour
 
     internal void CallCloseSocket()
     {
-       StartCoroutine(SocketManager.CloseSocket());
+        StartCoroutine(SocketManager.CloseSocket());
     }
 
 
